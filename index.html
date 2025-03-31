@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Deflexão de Tubulação - Solos Mistos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Calculadora de Deflexão de Tubulação - Solos Mistos</h1>
+        
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-4">Dados dos Solos</h2>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block mb-2">Solo Primário</label>
+                    <select id="solo-primario" class="w-full p-2 border rounded">
+                        <option value="">Selecione</option>
+                        <option value="Argila">Argila</option>
+                        <option value="Silte Arenoso">Silte Arenoso</option>
+                        <option value="Areia Compacta">Areia Compacta</option>
+                        <option value="Aterro Mal Compactado">Aterro Mal Compactado</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block mb-2">Solo Secundário</label>
+                    <select id="solo-secundario" class="w-full p-2 border rounded">
+                        <option value="">Opcional</option>
+                        <option value="Argila">Argila</option>
+                        <option value="Silte Arenoso">Silte Arenoso</option>
+                        <option value="Areia Compacta">Areia Compacta</option>
+                        <option value="Aterro Mal Compactado">Aterro Mal Compactado</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block mb-2">Proporção Solo Secundário (%)</label>
+                    <input type="number" id="proporcao-solo" value="0" min="0" max="100" class="w-full p-2 border rounded">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded">
+                <h3 class="font-semibold mb-2">Tabela de Solos</h3>
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2">Solo</th>
+                            <th class="border p-2">Módulo de Reação (E') [kN/m²]</th>
+                            <th class="border p-2">Peso Específico (γ) [kN/m³]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border p-2">Argila</td>
+                            <td class="border p-2">1400</td>
+                            <td class="border p-2">18</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">Silte Arenoso</td>
+                            <td class="border p-2">5000</td>
+                            <td class="border p-2">20</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">Areia Compacta</td>
+                            <td class="border p-2">10000</td>
+                            <td class="border p-2">22</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">Aterro Mal Compactado</td>
+                            <td class="border p-2">800</td>
+                            <td class="border p-2">16</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block mb-2">Diâmetro Nominal (DN)</label>
+                <input type="number" id="diametro" value="150" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block mb-2">Rigidez do Tubo (SN)</label>
+                <input type="number" id="rigidez" value="4" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block mb-2">Largura da Vala (Bd)</label>
+                <input type="number" id="largura-vala" value="0.6" step="0.1" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block mb-2">Profundidade da Vala (H)</label>
+                <input type="number" id="profundidade" value="4.0" step="0.1" class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block mb-2">Módulo de Reação (E') [kN/m²]</label>
+                    <input type="number" id="modulo-reacao" readonly class="w-full p-2 border rounded bg-gray-100">
+                </div>
+                <div>
+                    <label class="block mb-2">Peso Específico (γ) [kN/m³]</label>
+                    <input type="number" id="peso-especifico" readonly class="w-full p-2 border rounded bg-gray-100">
+                </div>
+            </div>
+            <canvas id="solo-chart" class="mt-4" height="100"></canvas>
+        </div>
+
+        <button onclick="calcular()" class="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 transition">Calcular</button>
+
+        <div id="resultados" class="mt-6 p-4 bg-gray-50 rounded hidden">
+            <h2 class="text-xl font-semibold mb-4">Resultados</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <strong>Carga Estática (Wc):</strong>
+                    <span id="carga-estatica"></span>
+                </div>
+                <div>
+                    <strong>Pressão Estática (Wc):</strong>
+                    <span id="pressao-estatica"></span>
+                </div>
+                <div>
+                    <strong>Carga Dinâmica (Wl):</strong>
+                    <span id="carga-dinamica"></span>
+                </div>
+                <div>
+                    <strong>Carga Total (W):</strong>
+                    <span id="carga-total"></span>
+                </div>
+                <div>
+                    <strong>Deflexão Percentual (%):</strong>
+                    <span id="deflexao-percentual"></span>
+                </div>
+                <div>
+                    <strong>Deflexão Absoluta (mm):</strong>
+                    <span id="deflexao-absoluta"></span>
+                </div>
+                <div>
+                    <strong>Limite Normativo (mm):</strong>
+                    <span id="limite-normativo"></span>
+                </div>
+                <div>
+                    <strong>Atende à Norma:</strong>
+                    <span id="atende-norma"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos solos
+        const dadosSolos = {
+            'Argila': { modulo: 1400, peso: 18 },
+            'Silte Arenoso': { modulo: 5000, peso: 20 },
+            'Areia Compacta': { modulo: 10000, peso: 22 },
+            'Aterro Mal Compactado': { modulo: 800, peso: 16 }
+        };
+
+        // Variável para o gráfico
+        let soloChart = null;
+
+        // Função para calcular módulo e peso combinados
+        function calcularSoloMisto() {
+            const soloPrimario = document.getElementById('solo-primario').value;
+            const soloSecundario = document.getElementById('solo-secundario').value;
+            const proporcao = parseFloat(document.getElementById('proporcao-solo').value) / 100;
+
+            if (!soloPrimario) {
+                alert('Selecione pelo menos o Solo Primário');
+                return null;
+            }
+
+            let moduloReacao, pesoEspecifico;
+
+            if (!soloSecundario || proporcao === 0) {
+                // Usar apenas o solo primário
+                moduloReacao = dadosSolos[soloPrimario].modulo;
+                pesoEspecifico = dadosSolos[soloPrimario].peso;
+            } else {
+                // Calcular média ponderada
+                moduloReacao = (
+                    dadosSolos[soloPrimario].modulo * (1 - proporcao) + 
+                    dadosSolos[soloSecundario].modulo * proporcao
+                );
+                pesoEspecifico = (
+                    dadosSolos[soloPrimario].peso * (1 - proporcao) + 
+                    dadosSolos[soloSecundario].peso * proporcao
+                );
+            }
+
+            // Atualizar campos de módulo e peso
+            document.getElementById('modulo-reacao').value = moduloReacao.toFixed(2);
+            document.getElementById('peso-especifico').value = pesoEspecifico.toFixed(2);
+
+            // Atualizar gráfico
+            atualizarGraficoSolo(soloPrimario, soloSecundario, proporcao);
+
+            return { moduloReacao, pesoEspecifico };
+        }
+
+        // Função para atualizar gráfico de proporção de solos
+        function atualizarGraficoSolo(soloPrimario, soloSecundario, proporcao) {
+            // Destruir gráfico anterior, se existir
+            if (soloChart) {
+                soloChart.destroy();
+            }
+
+            const ctx = document.getElementById('solo-chart').getContext('2d');
+            
+            // Preparar dados para o gráfico
+            const dados = {
+                labels: [soloPrimario, soloSecundario || 'N/A'],
+                datasets: [{
+                    data: [100 - (proporcao * 100), proporcao * 100],
+                    backgroundColor: ['#3B82F6', '#10B981']
+                }]
+            };
+
+            soloChart = new Chart(ctx, {
+                type: 'pie',
+                data: dados,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Proporção de Solos'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Adicionar listeners para recalcular quando os solos mudarem
+        document.getElementById('solo-primario').addEventListener('change', calcularSoloMisto);
+        document.getElementById('solo-secundario').addEventListener('change', calcularSoloMisto);
+        document.getElementById('proporcao-solo').addEventListener('input', calcularSoloMisto);
+
+        function calcular() {
+            // Primeiro, calcular os parâmetros dos solos
+            const soloMisto = calcularSoloMisto();
+            if (!soloMisto) return;
+
+            // Parâmetros de entrada
+            const diametro = parseFloat(document.getElementById('diametro').value);
+            const rigidez = parseFloat(document.getElementById('rigidez').value);
+            const larguraVala = parseFloat(document.getElementById('largura-vala').value);
+            const profundidade = parseFloat(document.getElementById('profundidade').value);
+
+            // Constantes
+            const coeficienteCd = 1.25;
+            const fatorDl = 1.5;
+            const fatorK = 0.1;
+
+            // Cálculos Intermediários
+            const cargaEstatica = coeficienteCd * soloMisto.pesoEspecifico * Math.pow(larguraVala, 2) * (profundidade / 6);
+            const pressaoEstatica = cargaEstatica / (diametro / 1000);
+            
+            let cargaDinamica;
+            if (profundidade >= 6) {
+                cargaDinamica = 0.5;
+            } else if (profundidade >= 4) {
+                cargaDinamica = 1;
+            } else if (profundidade >= 3.5) {
+                cargaDinamica = 2;
+            } else {
+                cargaDinamica = 3;
+            }
+
+            const cargaTotal = pressaoEstatica + cargaDinamica;
+            
+            const deflexaoPercentual = (fatorDl * fatorK * cargaTotal) / (8 * rigidez + 0.061 * soloMisto.moduloReacao) * 100;
+            const deflexaoAbsoluta = (deflexaoPercentual / 100) * diametro;
+            const limiteNormativo = 0.05 * diametro;
+            const atendeNorma = deflexaoAbsoluta <= limiteNormativo ? "SIM" : "NÃO";
+
+            // Exibir resultados
+            document.getElementById('carga-estatica').textContent = cargaEstatica.toFixed(2);
+            document.getElementById('pressao-estatica').textContent = pressaoEstatica.toFixed(2);
+            document.getElementById('carga-dinamica').textContent = cargaDinamica.toFixed(2);
+            document.getElementById('carga-total').textContent = cargaTotal.toFixed(2);
+            document.getElementById('deflexao-percentual').textContent = deflexaoPercentual.toFixed(2);
+            document.getElementById('deflexao-absoluta').textContent = deflexaoAbsoluta.toFixed(2);
+            document.getElementById('limite-normativo').textContent = limiteNormativo.toFixed(2);
+            
+            const atendeNormaSpan = document.getElementById('atende-norma');
+            atendeNormaSpan.textContent = atendeNorma;
+            atendeNormaSpan.className = atendeNorma === "SIM" ? "text-green-600" : "text-red-600";
+
+            // Mostrar resultados
+            document.getElementById('resultados').classList.remove('hidden');
+        }
+
+        // Inicializar com valores padrão
+        calcularSoloMisto();
+    </script>
+</body>
+</html>
